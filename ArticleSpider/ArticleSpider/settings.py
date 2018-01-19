@@ -92,3 +92,4 @@ ROBOTSTXT_OBEY = False
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SELENIUM_WEBDRIVER_PATH = os.path.join(BASE_DIR, 'driver/chromedriver')
+WKHTMLTOPDF_CONFIG_PATH = os.path.join(BASE_DIR, 'driver/wkhtmltox-0.12.4_mingw-w64-cross-win64.exe')

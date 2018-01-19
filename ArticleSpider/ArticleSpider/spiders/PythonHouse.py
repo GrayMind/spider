@@ -5,6 +5,7 @@ import scrapy
 # from scrapy.selector import Selector
 import pdfkit
 import re
+from ArticleSpider.settings import WKHTMLTOPDF_CONFIG_PATH
 
 class PythonhouseSpider(scrapy.Spider):
     name = 'PythonHouse'
@@ -40,12 +41,17 @@ class PythonhouseSpider(scrapy.Spider):
         p_list = response.selector.css('.rich_media_content p')
         body = ''
         for p in p_list:
-            p_text = p.css('span::text')
-            match_obj = re.match('^-*.*-$', p_text)
-            if match_obj:
-                break
-            else:
-                body += p.extract_first()
+            p_text = p.css('span::text').extract_first()
+            p_image = p.css('img').extract_first()
+            if p_text:
+                match_obj = re.match('(^-*.*-$)', p_text)
+                if match_obj:
+                    print(match_obj.group(1))
+                    break
+                else:
+                    body += p.xpath('.').extract_first()
+            if p_image:
+                body += p.xpath('.').extract_first()
 
         body = body.replace('data-src', 'src')
         body = """
@@ -89,13 +95,14 @@ class PythonhouseSpider(scrapy.Spider):
     def closed(self, reason):
         options = {
             'encoding': "utf-8",
-            'page-size': "A7",
+            'page-size': "A6",
             'margin-top': '4mm',
             'margin-right': '2mm',
             'margin-bottom': '4mm',
             'margin-left': '2mm',
         }
         print(self.htmls)
-        pdfkit.from_file(self.htmls, 'python.pdf', options=options)
+        config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+        pdfkit.from_file(self.htmls, 'python.pdf', options=options, configuration=config)
         print('------pdfkit')
 
