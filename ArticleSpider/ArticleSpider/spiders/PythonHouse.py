@@ -30,10 +30,11 @@ class PythonhouseSpider(scrapy.Spider):
 
     def parse(self, response):
         urls = response.selector.css('#js_content p a::attr(href)').extract()
-        urls = urls[8:9]
-        for url in urls:
+        # urls = urls[14:15]
+
+        for index, url in enumerate(urls):
             print(url)
-            yield scrapy.Request(url, headers=self.headers, callback=self.parse_detail)
+            yield scrapy.Request(url, headers=self.headers, callback=self.parse_detail, meta={'index': index})
 
     def parse_detail(self, response):
         title = response.selector.css('.rich_media_title::text').extract_first().strip()
@@ -55,54 +56,38 @@ class PythonhouseSpider(scrapy.Spider):
 
         body = body.replace('data-src', 'src')
         body = """
-                    <html>
-                      <head>
-                        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0,viewport-fit=cover">
-                        <meta name="apple-mobile-web-app-capable" content="yes">
-                        <meta name="apple-mobile-web-app-status-bar-style" content="black">
-                        <meta name="format-detection" content="telephone=no">
-                        <link rel="stylesheet" href="./wechat.css" type="text/css">
-                      </head>
-                      <body class="zh_CN mm_appmsg rich_media_empty_extra not_in_mm">
-                        <div id="js_article" class="rich_media">
-                            <div class="rich_media_inner">
-                                <div id="page-content" class="rich_media_area_primary">
-                                    <div id="img-content">
-                                        <h2 class="rich_media_title" id="activity-name">
-                                        {0}   
-                                        </h2>
-                                        {1}
-                                    <div>
-                                <div>
-                            <div>
-                        <div>
-                      </body>
-                      </html>
+            <html>
+                <body style="font-size: 20px;width: 100%">
+                    <h2>{0}</h2>
+                    <br/>
+                    {1}
+                </body>
+            </html>
         """.format(title, body)
         body = body.encode('utf-8')
+        index = response.meta.get('index')
+        filename = 'html/' + str(index) + '.html'
 
-        title = title + '.html'
-        match_obj = re.match('.*mid=(\d+).*', response.url)
-        if match_obj:
-            title = match_obj.group(1) + '.html'
+        # match_obj = re.match('.*mid=(\d+).*', response.url)
+        # if match_obj:
+        #     title = 'html/' + match_obj.group(1) + '.html'
 
-        self.htmls.append(title)
-        with open(title, 'wb') as f:
+        self.htmls.append(filename)
+        with open(filename, 'wb') as f:
             f.write(body)
 
     def closed(self, reason):
         options = {
             'encoding': "utf-8",
-            'page-size': "A6",
-            'margin-top': '4mm',
-            'margin-right': '2mm',
-            'margin-bottom': '4mm',
-            'margin-left': '2mm',
+            'page-size': "A4",
+            'margin-top': '10mm',
+            'margin-right': '8mm',
+            'margin-bottom': '10mm',
+            'margin-left': '8mm',
         }
         print(self.htmls)
+        # self.htmls = sorted(self.htmls)
         config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
         pdfkit.from_file(self.htmls, 'python.pdf', options=options, configuration=config)
-        print('------pdfkit')
+        print('------end')
 
