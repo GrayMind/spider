@@ -7,6 +7,7 @@ import pdfkit
 import re
 from ArticleSpider.settings import WKHTMLTOPDF_CONFIG_PATH
 
+
 class PythonhouseSpider(scrapy.Spider):
     name = 'PythonHouse'
     allowed_domains = ['mp.weixin.qq.com']
@@ -18,6 +19,7 @@ class PythonhouseSpider(scrapy.Spider):
 
     htmls = []
 
+
     def start_requests(self):
         # brower = webdriver.Chrome(executable_path=SELENIUM_WEBDRIVER_PATH)
         # brower.get('http://mp.weixin.qq.com/s/u9FeqoBaA3Mr0fPCUMbpqA')
@@ -28,6 +30,7 @@ class PythonhouseSpider(scrapy.Spider):
         for url in self.start_urls:
             yield scrapy.Request(url, headers=self.headers)
 
+
     def parse(self, response):
         urls = response.selector.css('#js_content p a::attr(href)').extract()
         # urls = urls[14:15]
@@ -35,6 +38,7 @@ class PythonhouseSpider(scrapy.Spider):
         for index, url in enumerate(urls):
             print(url)
             yield scrapy.Request(url, headers=self.headers, callback=self.parse_detail, meta={'index': index})
+
 
     def parse_detail(self, response):
         title = response.selector.css('.rich_media_title::text').extract_first().strip()
@@ -75,6 +79,7 @@ class PythonhouseSpider(scrapy.Spider):
         self.htmls.append(filename)
         with open(filename, 'wb') as f:
             f.write(body)
+
 
     def closed(self, reason):
         options = {
