@@ -66,9 +66,10 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'ImoocSpider.pipelines.ImoocspiderPipeline': 300,
+    'ImoocSpider.pipelines.ImoocspiderPipeline': 3,
     # 'scrapy.pipelines.images.ImagesPipeline': 1,
     'ImoocSpider.pipelines.ArticleImagePipeline': 1,
+    'ImoocSpider.pipelines.JsonWithEncodingPipeline': 2
 }
 IMAGES_URLS_FIELD = 'front_image_url'
 project_dir = os.path.abspath(os.path.dirname(__file__))
