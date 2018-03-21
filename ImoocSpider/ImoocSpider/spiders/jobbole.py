@@ -4,6 +4,7 @@ import re
 from urllib import parse
 from ImoocSpider.items import JobBoleArticleItem
 from ImoocSpider.utils.common import get_md5
+from datetime import datetime
 
 
 class JobboleSpider(scrapy.Spider):
@@ -88,7 +89,10 @@ class JobboleSpider(scrapy.Spider):
 
         article_item = JobBoleArticleItem()
         article_item['title'] = title
-        article_item['create_date'] = create_time
+        try:
+            article_item['create_date'] = datetime.strptime(create_time, '%Y/%m/%d')
+        except Exception:
+            article_item['create_date'] = None
         article_item['url'] = response.url
         article_item['url_object_id'] = get_md5(response.url)
         article_item['front_image_url'] = [front_image_url]
