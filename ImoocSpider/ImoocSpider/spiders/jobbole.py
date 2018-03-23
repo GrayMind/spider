@@ -2,9 +2,10 @@
 import scrapy
 import re
 from urllib import parse
-from ImoocSpider.items import JobBoleArticleItem
+from ImoocSpider.items import JobBoleArticleItem, ArticleItemLoader
 from ImoocSpider.utils.common import get_md5
 from datetime import datetime
+from scrapy.loader import ItemLoader
 
 
 class JobboleSpider(scrapy.Spider):
@@ -66,40 +67,56 @@ class JobboleSpider(scrapy.Spider):
 
         # css 方式
         # 文章封面图
-        front_image_url = response.meta.get('front_image_url', '')
-        title = response.css('.entry-header h1::text').extract_first('')
-        create_time = response.css('.entry-meta-hide-on-mobile::text').extract_first('').replace('·', '').strip()
-        praise_num = response.css('span.vote-post-up h10::text').extract_first('')
-        fav_num = response.css('span.bookmark-btn::text').extract_first('')
-        match_re = re.match('.*?(\d+).*', fav_num)
-        if match_re:
-            fav_num = match_re.group(1)
-        else:
-            fav_num = '0'
-        comment_num = response.css('a[href="#article-comment"] span::text').extract_first('')
-        match_re = re.match('.*?(\d+).*', comment_num)
-        if match_re:
-            comment_num = match_re.group(1)
-        else:
-            comment_num = '0'
-        content = response.css('.entry').extract_first('')
-        tag_list = response.css('p.entry-meta-hide-on-mobile a::text').extract()
-        tag_list = [e for e in tag_list if not e.strip().endswith('评论')]
-        tags = ','.join(tag_list)
 
-        article_item = JobBoleArticleItem()
-        article_item['title'] = title
-        try:
-            article_item['create_date'] = datetime.strptime(create_time, '%Y/%m/%d')
-        except Exception:
-            article_item['create_date'] = datetime.now().date()
-        article_item['url'] = response.url
-        article_item['url_object_id'] = get_md5(response.url)
-        article_item['front_image_url'] = [front_image_url]
-        # article_item['front_image_path'] = title
-        article_item['praise_nums'] = praise_num
-        article_item['comment_nums'] = comment_num
-        article_item['fav_nums'] = fav_num
-        article_item['tags'] = tags
-        article_item['content'] = content
+        # title = response.css('.entry-header h1::text').extract_first('')
+        # create_time = response.css('.entry-meta-hide-on-mobile::text').extract_first('').replace('·', '').strip()
+        # praise_num = response.css('span.vote-post-up h10::text').extract_first('')
+        # fav_num = response.css('span.bookmark-btn::text').extract_first('')
+        # match_re = re.match('.*?(\d+).*', fav_num)
+        # if match_re:
+        #     fav_num = match_re.group(1)
+        # else:
+        #     fav_num = '0'
+        # comment_num = response.css('a[href="#article-comment"] span::text').extract_first('')
+        # match_re = re.match('.*?(\d+).*', comment_num)
+        # if match_re:
+        #     comment_num = match_re.group(1)
+        # else:
+        #     comment_num = '0'
+        # content = response.css('.entry').extract_first('')
+        # tag_list = response.css('p.entry-meta-hide-on-mobile a::text').extract()
+        # tag_list = [e for e in tag_list if not e.strip().endswith('评论')]
+        # tags = ','.join(tag_list)
+        #
+        # article_item = JobBoleArticleItem()
+        # article_item['title'] = title
+        # try:
+        #     article_item['create_date'] = datetime.strptime(create_time, '%Y/%m/%d')
+        # except Exception:
+        #     article_item['create_date'] = datetime.now().date()
+        # article_item['url'] = response.url
+        # article_item['url_object_id'] = get_md5(response.url)
+        # article_item['front_image_url'] = [front_image_url]
+        # # article_item['front_image_path'] = title
+        # article_item['praise_nums'] = praise_num
+        # article_item['comment_nums'] = comment_num
+        # article_item['fav_nums'] = fav_num
+        # article_item['tags'] = tags
+        # article_item['content'] = content
+        front_image_url = response.meta.get('front_image_url', '')
+
+        item_loader = ArticleItemLoader(item=JobBoleArticleItem(), response=response)
+        item_loader.add_value('url', response.url)
+        item_loader.add_css('title', '.entry-header h1::text')
+        item_loader.add_css('create_date', '.entry-meta-hide-on-mobile::text')
+        item_loader.add_value('url_object_id', get_md5(response.url))
+        item_loader.add_value('front_image_url', [front_image_url])
+        item_loader.add_css('praise_nums', 'span.vote-post-up h10::text')
+        item_loader.add_css('comment_nums', 'a[href="#article-comment"] span::text')
+        item_loader.add_css('fav_nums', 'span.bookmark-btn::text')
+        item_loader.add_css('tags', 'p.entry-meta-hide-on-mobile a::text')
+        item_loader.add_css('content', '.entry')
+
+        article_item = item_loader.load_item()
+
         yield article_item
