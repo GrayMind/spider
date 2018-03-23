@@ -95,7 +95,11 @@ class MysqlTwistedPipeline(object):
         return item
 
     def do_insert(self, cursor, item):
-        pass
+        insert_sql = """
+                    insert into jobbole_article(title, url, create_date, fav_nums)
+                    VALUES (%s, %s, %s, %s)
+                """
+        cursor.execute(insert_sql, (item['title'], item['url'], item['create_date'], item['fav_nums']))
 
     def handle_err(self, failure, item, spider):
         pass

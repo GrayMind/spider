@@ -92,7 +92,7 @@ class JobboleSpider(scrapy.Spider):
         try:
             article_item['create_date'] = datetime.strptime(create_time, '%Y/%m/%d')
         except Exception:
-            article_item['create_date'] = None
+            article_item['create_date'] = datetime.now().date()
         article_item['url'] = response.url
         article_item['url_object_id'] = get_md5(response.url)
         article_item['front_image_url'] = [front_image_url]
